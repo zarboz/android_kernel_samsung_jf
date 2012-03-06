@@ -755,6 +755,10 @@ static void dbs_freq_increase(struct cpufreq_policy *p, unsigned int freq)
 
 static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 {
+	/* Extrapolated load of this CPU */
+	unsigned int load_at_max_freq = 0;
+	/* Current load across this CPU */
+	unsigned int cur_load = 0;
 
 /* PATCH : SMART_UP */
 #if defined(SMART_UP_PLUS)
@@ -861,6 +865,10 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 #endif
 
 	}
+	/* calculate the scaled load across CPU */
+	load_at_max_freq = (cur_load * policy->cur)/policy->cpuinfo.max_freq;
+
+	cpufreq_notify_utilization(policy, load_at_max_freq);
 
 	for_each_online_cpu(j) {
 		struct cpu_dbs_info_s *j_dbs_info;
