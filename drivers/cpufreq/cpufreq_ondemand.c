@@ -756,9 +756,9 @@ static void dbs_freq_increase(struct cpufreq_policy *p, unsigned int freq)
 static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 {
 	/* Extrapolated load of this CPU */
-	unsigned int load_at_max_freq = 0;
+// 	unsigned int load_at_max_freq = 0;
 	/* Current load across this CPU */
-	unsigned int cur_load = 0;
+// 	unsigned int cur_load = 0;
 
 /* PATCH : SMART_UP */
 #if defined(SMART_UP_PLUS)
