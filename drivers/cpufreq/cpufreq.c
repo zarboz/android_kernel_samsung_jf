@@ -2159,6 +2159,7 @@ no_policy:
 }
 EXPORT_SYMBOL(cpufreq_update_policy);
 
+
 int cpufreq_set_limit_defered(unsigned int flags, unsigned int value)
 {
 	unsigned int ret = -EINVAL;					
@@ -2281,7 +2282,7 @@ void set_cur_sched(const char *name)
 	ret = sscanf(name, "%15s", scaling_sched_screen_off_sel_prev);
 }
 
-static int __cpuinit cpufreq_cpu_callback(struct notifier_block *nfb,
+static int cpufreq_cpu_callback(struct notifier_block *nfb,
 					unsigned long action, void *hcpu)
 {
 	unsigned int cpu = (unsigned long)hcpu;
