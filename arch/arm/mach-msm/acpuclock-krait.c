@@ -52,11 +52,11 @@
 #define PRI_SRC_SEL_HFPLL_DIV2	2
 
 #define SECCLKAGD		BIT(4)
-#ifdef CONFIG_SEC_DEBUG_SUBSYS
+
 int boost_uv;
 int speed_bin;
 int pvs_bin;
-#endif
+
 
 struct acpu_level orig_drv[FREQ_STEPS];
 extern void reset_num_cpu_freqs(void);
@@ -1109,6 +1109,9 @@ static int __init get_pvs_bin(u32 pte_efuse)
 	}
 
 	return pvs_bin;
+#ifdef CONFIG_DEBUG_FS
+        krait_chip_variant = pvs_bin;
+#endif
 }
 
 static struct pvs_table * __init select_freq_plan(u32 pte_efuse_phys,
@@ -1129,10 +1132,13 @@ static struct pvs_table * __init select_freq_plan(u32 pte_efuse_phys,
 	/* Select frequency tables. */
 	bin_idx = get_speed_bin(pte_efuse_val);
 	tbl_idx = get_pvs_bin(pte_efuse_val);
-#ifdef CONFIG_SEC_DEBUG_SUBSYS
 	speed_bin = bin_idx;
 	pvs_bin = tbl_idx;
+	
+#ifdef CONFIG_DEBUG_FS
+        krait_chip_variant = tbl_idx;
 #endif
+
 	return &pvs_tables[bin_idx][tbl_idx];
 }
 
@@ -1169,13 +1175,10 @@ static void __init drv_data_init(struct device *dev,
 	BUG_ON(!drv.acpu_freq_tbl);
 	drv.boost_uv = pvs->boost_uv;
 
-#ifdef CONFIG_SEC_DEBUG_SUBSYS
 	boost_uv = drv.boost_uv;
-#endif
 
-#ifdef CONFIG_DEBUG_FS
-        krait_chip_variant = tbl_idx;
-#endif
+
+
 
 
 	acpuclk_krait_data.power_collapse_khz = params->stby_khz;
@@ -1291,12 +1294,20 @@ static void __init hw_init(void)
 
 #ifdef CONFIG_DEBUG_FS
 static int krait_variant_debugfs_show(struct seq_file *s, void *data)
-{
+{	
+  
+	seq_printf(s, "Your krait chip speed is: \n");
+	seq_printf(s, "[%s] 1 \n", ((speed_bin == 1) ? "X" : " "));
+	seq_printf(s, "[%s] 2 \n", ((speed_bin == 2) ? "X" : " "));
+
 	seq_printf(s, "Your krait chip variant is: \n");
-	seq_printf(s, "[%s] SLOW \n", ((krait_chip_variant == PVS_SLOW) ? "X" : " "));
-	seq_printf(s, "[%s] NOMINAL \n", ((krait_chip_variant == PVS_NOMINAL) ? "X" : " "));
-	seq_printf(s, "[%s] FAST \n", ((krait_chip_variant == PVS_FAST) ? "X" : " "));
-	seq_printf(s, "[%s] FASTER \n", ((krait_chip_variant == PVS_FASTER) ? "X" : " "));
+	seq_printf(s, "[%s] SLOWEST \n", ((krait_chip_variant == 0) ? "X" : " "));
+	seq_printf(s, "[%s] SLOWER \n", ((krait_chip_variant == 1) ? "X" : " "));
+	seq_printf(s, "[%s] SLOW \n", ((krait_chip_variant == 2) ? "X" : " "));
+	seq_printf(s, "[%s] NORM \n", ((krait_chip_variant == 3) ? "X" : " "));
+	seq_printf(s, "[%s] FAST \n", ((krait_chip_variant == 4) ? "X" : " "));
+	seq_printf(s, "[%s] FASTER \n", ((krait_chip_variant == 5) ? "X" : " "));
+	seq_printf(s, "[%s] FASTEST \n", ((krait_chip_variant == 6) ? "X" : " "));
 
 	return 0;
 }
