@@ -206,6 +206,36 @@ static int cpu_hotplug_handler(struct notifier_block *nb,
 	return NOTIFY_OK;
 }
 
+static int system_suspend_handler(struct notifier_block *nb,
+				unsigned long val, void *data)
+{
+	switch (val) {
+	case PM_POST_HIBERNATION:
+	case PM_POST_SUSPEND:
+	case PM_POST_RESTORE:
+		rq_info.hotplug_disabled = 0;
+		break;
+	case PM_HIBERNATION_PREPARE:
+	case PM_SUSPEND_PREPARE:
+		rq_info.hotplug_disabled = 1;
+		break;
+	default:
+		return NOTIFY_DONE;
+	}
+	return NOTIFY_OK;
+}
+
+
+static ssize_t hotplug_disable_show(struct kobject *kobj,
+		struct kobj_attribute *attr, char *buf)
+{
+	unsigned int val = 0;
+	val = rq_info.hotplug_disabled;
+	return snprintf(buf, MAX_LONG_SIZE, "%d\n", val);
+}
+
+static struct kobj_attribute hotplug_disabled_attr = __ATTR_RO(hotplug_disable);
+
 static void def_work_fn(struct work_struct *work)
 {
 	int64_t diff;
