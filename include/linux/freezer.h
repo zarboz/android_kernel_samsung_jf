@@ -52,7 +52,11 @@ static inline bool try_to_freeze_nowarn(void)
 	return __refrigerator(false);
 }
 
-static inline bool try_to_freeze(void)
+/*
+ * DO NOT ADD ANY NEW CALLERS OF THIS FUNCTION
+ * If try_to_freeze causes a lockdep warning it means the caller may deadlock
+ */
+static inline bool try_to_freeze_unsafe(void)
 {
 /* This causes problems for ARM targets and is a known
  * problem upstream.
@@ -61,6 +65,11 @@ static inline bool try_to_freeze(void)
 	if (likely(!freezing(current)))
 		return false;
 	return __refrigerator(false);
+}
+
+static inline bool try_to_freeze(void)
+{
+	return try_to_freeze_unsafe();
 }
 
 extern bool freeze_task(struct task_struct *p);
@@ -124,6 +133,14 @@ static inline void freezer_count(void)
 	try_to_freeze();
 }
 
+/* DO NOT ADD ANY NEW CALLERS OF THIS FUNCTION */
+static inline void freezer_count_unsafe(void)
+{
+	current->flags &= ~PF_FREEZER_SKIP;
+	smp_mb();
+	try_to_freeze_unsafe();
+}
+
 /**
  * freezer_should_skip - whether to skip a task when determining frozen
  *			 state is reached
@@ -162,24 +179,12 @@ static inline bool freezer_should_skip(struct task_struct *p)
 	freezer_count();						\
 })
 
-/* Like schedule_timeout(), but should not block the freezer. */
-#define freezable_schedule_timeout(timeout)				\
+/* DO NOT ADD ANY NEW CALLERS OF THIS FUNCTION */
+#define freezable_schedule_unsafe()					\
 ({									\
-	long __retval;							\
 	freezer_do_not_count();						\
-	__retval = schedule_timeout(timeout);				\
-	freezer_count();						\
-	__retval;							\
-})
-
-/* Like schedule_timeout_interruptible(), but should not block the freezer. */
-#define freezable_schedule_timeout_interruptible(timeout)		\
-({									\
-	long __retval;							\
-	freezer_do_not_count();						\
-	__retval = schedule_timeout_interruptible(timeout);		\
-	freezer_count();						\
-	__retval;							\
+	schedule();							\
+	freezer_count_unsafe();						\
 })
 
 /* Like schedule_timeout_killable(), but should not block the freezer. */
@@ -192,16 +197,15 @@ static inline bool freezer_should_skip(struct task_struct *p)
 	__retval;							\
 })
 
-/* Like schedule_hrtimeout_range(), but should not block the freezer. */
-#define freezable_schedule_hrtimeout_range(expires, delta, mode)	\
+/* DO NOT ADD ANY NEW CALLERS OF THIS FUNCTION */
+#define freezable_schedule_timeout_killable_unsafe(timeout)		\
 ({									\
-	int __retval;							\
+	long __retval;							\
 	freezer_do_not_count();						\
-	__retval = schedule_hrtimeout_range(expires, delta, mode);	\
-	freezer_count();						\
+	__retval = schedule_timeout_killable(timeout);			\
+	freezer_count_unsafe();						\
 	__retval;							\
 })
-
 
 /*
  * Freezer-friendly wrappers around wait_event_interruptible(),
@@ -221,31 +225,29 @@ static inline bool freezer_should_skip(struct task_struct *p)
 #define wait_event_freezable(wq, condition)				\
 ({									\
 	int __retval;							\
-	freezer_do_not_count();						\
-	__retval = wait_event_interruptible(wq, (condition));		\
-	freezer_count();						\
+	for (;;) {							\
+		__retval = wait_event_interruptible(wq, 		\
+				(condition) || freezing(current));	\
+		if (__retval || (condition))				\
+			break;						\
+		try_to_freeze();					\
+	}								\
 	__retval;							\
 })
 
 #define wait_event_freezable_timeout(wq, condition, timeout)		\
 ({									\
 	long __retval = timeout;					\
-	freezer_do_not_count();						\
-	__retval = wait_event_interruptible_timeout(wq,	(condition),	\
+	for (;;) {							\
+		__retval = wait_event_interruptible_timeout(wq,		\
+				(condition) || freezing(current),	\
 				__retval); 				\
-	freezer_count();						\
+		if (__retval <= 0 || (condition))			\
+			break;						\
+		try_to_freeze();					\
+	}								\
 	__retval;							\
 })
-
-#define wait_event_freezable_exclusive(wq, condition)		\
-({									\
-	int __retval;							\
-	freezer_do_not_count();						\
-	__retval = wait_event_interruptible_exclusive(wq, condition);	\
-	freezer_count();						\
-	__retval;							\
-})
-
 
 #else /* !CONFIG_FREEZER */
 static inline bool frozen(struct task_struct *p) { return false; }
@@ -267,25 +269,19 @@ static inline void set_freezable(void) {}
 
 #define freezable_schedule()  schedule()
 
-#define freezable_schedule_timeout(timeout)  schedule_timeout(timeout)
-
-#define freezable_schedule_timeout_interruptible(timeout)		\
-	schedule_timeout_interruptible(timeout)
+#define freezable_schedule_unsafe()  schedule()
 
 #define freezable_schedule_timeout_killable(timeout)			\
 	schedule_timeout_killable(timeout)
 
-#define freezable_schedule_hrtimeout_range(expires, delta, mode)	\
-	schedule_hrtimeout_range(expires, delta, mode)
+#define freezable_schedule_timeout_killable_unsafe(timeout)		\
+	schedule_timeout_killable(timeout)
 
 #define wait_event_freezable(wq, condition)				\
 		wait_event_interruptible(wq, condition)
 
 #define wait_event_freezable_timeout(wq, condition, timeout)		\
 		wait_event_interruptible_timeout(wq, condition, timeout)
-
-#define wait_event_freezable_exclusive(wq, condition)			\
-		wait_event_interruptible_exclusive(wq, condition)
 
 #define wait_event_freezekillable(wq, condition)		\
 		wait_event_killable(wq, condition)
