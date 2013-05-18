@@ -47,6 +47,8 @@
 #define PRI_SRC_SEL_HFPLL	1
 #define PRI_SRC_SEL_HFPLL_DIV2	2
 
+#define CPU_FREQ_TABLES  40
+
 #define SECCLKAGD		BIT(4)
 #ifdef CONFIG_SEC_DEBUG_SUBSYS
 int boost_uv;
@@ -985,7 +987,7 @@ void acpuclk_set_vdd(unsigned int khz, int vdd_uv) {
 #endif	/* CONFIG_CPU_VOTALGE_TABLE */
 
 #ifdef CONFIG_CPU_FREQ_MSM
-static struct cpufreq_frequency_table freq_table[NR_CPUS][40];
+static struct cpufreq_frequency_table freq_table[NR_CPUS][CPU_FREQ_TABLES];
 extern int console_batt_stat;
 static void __init cpufreq_table_init(void)
 {
