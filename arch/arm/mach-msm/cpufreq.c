@@ -32,7 +32,7 @@
 
 #include "acpuclock.h"
 
-#define SEC_DVFS 2106000
+#define SEC_DVFS_MAX_FREQ 2106000
 
 struct cpufreq_work_struct {
 	struct work_struct work;
@@ -67,7 +67,7 @@ static DEFINE_PER_CPU(struct cpu_freq, cpu_freq_info);
 #ifdef CONFIG_SEC_DVFS_BOOSTER
 static unsigned int upper_limit_freq = 1566000;
 #else
-static unsigned int upper_limit_freq = SEC_DVFS;
+static unsigned int upper_limit_freq = SEC_DVFS_MAX_FREQ;
 #endif
 static unsigned int lower_limit_freq;
 static unsigned int cpuinfo_max_freq;
