@@ -29,10 +29,9 @@
 #include <linux/suspend.h>
 #include <mach/socinfo.h>
 #include <mach/cpufreq.h>
-
+#include "krait-defines.h"
 #include "acpuclock.h"
 
-#define SEC_DVFS_MAX_FREQ 2106000
 
 struct cpufreq_work_struct {
 	struct work_struct work;

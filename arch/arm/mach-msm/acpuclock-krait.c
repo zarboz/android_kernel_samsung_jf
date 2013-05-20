@@ -39,6 +39,8 @@
 #include "acpuclock.h"
 #include "acpuclock-krait.h"
 #include "avs.h"
+#include "krait-defines.h"
+
 #ifdef CONFIG_SEC_DEBUG_DCVS_LOG
 #include <mach/sec_debug.h>
 #endif
@@ -46,8 +48,6 @@
 #define PRI_SRC_SEL_SEC_SRC	0
 #define PRI_SRC_SEL_HFPLL	1
 #define PRI_SRC_SEL_HFPLL_DIV2	2
-
-#define CPU_FREQ_TABLES  40
 
 #define SECCLKAGD		BIT(4)
 #ifdef CONFIG_SEC_DEBUG_SUBSYS
@@ -940,9 +940,6 @@ static void __init bus_init(const struct l2_level *l2_level)
 
 #ifdef CONFIG_CPU_VOLTAGE_TABLE
 
-#define HFPLL_MIN_VDD		 800000
-#define HFPLL_MAX_VDD		1400000
-
 ssize_t acpuclk_get_vdd_levels_str(char *buf) {
 
 	int i, len = 0;
@@ -987,7 +984,7 @@ void acpuclk_set_vdd(unsigned int khz, int vdd_uv) {
 #endif	/* CONFIG_CPU_VOTALGE_TABLE */
 
 #ifdef CONFIG_CPU_FREQ_MSM
-static struct cpufreq_frequency_table freq_table[NR_CPUS][CPU_FREQ_TABLES];
+static struct cpufreq_frequency_table freq_table[NR_CPUS][20 + CPU_MAX_NUM_FREQS];
 extern int console_batt_stat;
 static void __init cpufreq_table_init(void)
 {
