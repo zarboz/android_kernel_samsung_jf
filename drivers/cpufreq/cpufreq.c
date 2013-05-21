@@ -33,8 +33,8 @@
 #include <trace/events/power.h>
 
 //KT Specifics
-int GLOBALKT_MIN_FREQ_LIMIT = 378000;
-int GLOBALKT_MAX_FREQ_LIMIT = 1890000;
+int GLOBALKT_MIN_FREQ_LIMIT = 81000;
+int GLOBALKT_MAX_FREQ_LIMIT = 1998000;
 
 static unsigned int vfreq_lock = 0;
 static bool vfreq_lock_tempOFF = false;
@@ -47,20 +47,18 @@ extern unsigned int get_enable_oc(void);
 
 static bool Lonoff = false;
 static unsigned int Lscreen_off_scaling_enable = 0;
-static unsigned int Lscreen_off_scaling_mhz = 1890000;
-static unsigned int Lscreen_off_scaling_mhz_orig = 1890000;
+static unsigned int Lscreen_off_scaling_mhz = 1998000;
+static unsigned int Lscreen_off_scaling_mhz_orig = 1998000;
 static char scaling_governor_screen_off_sel[16];
 static char scaling_governor_screen_off_sel_prev[16];
 static char scaling_sched_screen_off_sel[16];
 static char scaling_sched_screen_off_sel_prev[16];
-static unsigned int Lenable_auto_hotplug = 0;
+extern int elevator_change_relay(const char *name, int screen_status);
 
 //Global placeholder for CPU policies
 static struct cpufreq_policy trmlpolicy[10];
 //Kthermal limit holder to stop govs from setting CPU speed higher than the thermal limit
 // unsigned int kthermal_limit = 0;
-
-extern void apenable_auto_hotplug(bool state);
 
 /**
  * The "cpufreq driver" - the arch- or hardware-dependent low
@@ -840,21 +838,6 @@ static ssize_t show_bios_limit(struct cpufreq_policy *policy, char *buf)
 	return sprintf(buf, "%u\n", policy->cpuinfo.max_freq);
 }
 
-static ssize_t show_enable_auto_hotplug(struct cpufreq_policy *policy, char *buf)
-{
-	return sprintf(buf, "%u\n", Lenable_auto_hotplug);
-}
-static ssize_t store_enable_auto_hotplug(struct cpufreq_policy *policy,
-					const char *buf, size_t count)
-{
-	unsigned int val = 0;
-	unsigned int ret;
-	ret = sscanf(buf, "%u", &val);
-	Lenable_auto_hotplug = val;
-	apenable_auto_hotplug((bool) Lenable_auto_hotplug);
-	return count;
-}
-
 static ssize_t show_freq_lock(struct cpufreq_policy *policy, char *buf)
 {
 	return sprintf(buf, "%u\n", vfreq_lock);
@@ -898,7 +881,6 @@ cpufreq_freq_attr_rw(screen_off_scaling_enable);
 cpufreq_freq_attr_rw(screen_off_scaling_mhz);
 cpufreq_freq_attr_rw(scaling_governor_screen_off);
 cpufreq_freq_attr_rw(scaling_sched_screen_off);
-cpufreq_freq_attr_rw(enable_auto_hotplug);
 
 static struct attribute *default_attrs[] = {
 	&cpuinfo_min_freq.attr,
@@ -921,7 +903,6 @@ static struct attribute *default_attrs[] = {
 	&screen_off_scaling_mhz.attr,
 	&scaling_governor_screen_off.attr,
 	&scaling_sched_screen_off.attr,
-	&enable_auto_hotplug.attr,
 	NULL
 };
 
@@ -1792,8 +1773,8 @@ int __cpufreq_driver_target(struct cpufreq_policy *policy,
 
 	//pr_alert("DO KTHERMAL 2 %u-%u-%u\n", target_freq, relation, policy->cpu);
 	
-	if (kthermal_limit > 0 && target_freq > kthermal_limit)
-		target_freq = kthermal_limit;
+// 	if (kthermal_limit > 0 && target_freq > kthermal_limit)
+// 		target_freq = kthermal_limit;
 
 	//pr_alert("DO KTHERMAL 3 %u-%u-%u\n", target_freq, relation, policy->cpu);
 		
@@ -1986,15 +1967,15 @@ int cpufreq_get_policy(struct cpufreq_policy *policy, unsigned int cpu)
 }
 EXPORT_SYMBOL(cpufreq_get_policy);
 
-void do_kthermal(unsigned int cpu, unsigned int freq)
-{
-	kthermal_limit = freq;
-  	if (freq > 0)
-  	{
-  		//pr_alert("DO KTHERMAL %u-%u\n", cpu, freq);
-		__cpufreq_driver_target(&trmlpolicy[cpu], freq, CPUFREQ_RELATION_H);
-	}
-}
+// void do_kthermal(unsigned int cpu, unsigned int freq)
+// {
+// 	kthermal_limit = freq;
+//   	if (freq > 0)
+//   	{
+//   		//pr_alert("DO KTHERMAL %u-%u\n", cpu, freq);
+// 		__cpufreq_driver_target(&trmlpolicy[cpu], freq, CPUFREQ_RELATION_H);
+// 	}
+// }
 
 /*
  * data   : current policy.

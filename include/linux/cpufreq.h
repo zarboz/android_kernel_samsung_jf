@@ -25,7 +25,7 @@
 
 #define FREQ_TABLE_SIZE		45
 #define FREQ_TABLE_SIZE_OFFSET	8
-#define FREQ_STEPS		31
+#define FREQ_STEPS		32
 
 #define MAX_VDD_SC		1350000 /* uV */
 #define MIN_VDD_SC		700000 /* uV */
@@ -124,7 +124,7 @@ struct cpufreq_policy {
 	struct kobject		kobj;
 	struct completion	kobj_unregister;
 };
-extern struct cpufreq_policy trmlpolicy[10];
+// extern struct cpufreq_policy trmlpolicy[10];
 
 #define CPUFREQ_ADJUST		(0)
 #define CPUFREQ_INCOMPATIBLE	(1)
