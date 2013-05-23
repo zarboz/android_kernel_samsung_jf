@@ -25,7 +25,7 @@
 
 #define MSM_CPUFREQ_LIMIT_VERSION 1
 
-static uint32_t limited_max_freq = MSM_CPUFREQ_NO_LIMIT;
+static uint32_t limited_max_freq = 1998000;
 
 static int update_cpu_max_freq(int cpu, uint32_t max_freq)
 {
