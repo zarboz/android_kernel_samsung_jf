@@ -2817,6 +2817,13 @@ config SEC_THERMISTOR
 	help
 	Use thermistor driver for checking temperature near AP chip.
 
+config FORCE_FAST_CHARGE
+	bool "Force AC charge mode at will"
+	default n
+	help
+		A simple sysfs interface to force adapters that
+		are detected as USB to charge as AC.
+
 config SEC_FACTORY
 	bool "Enable FACTORY Features"
 	default n
