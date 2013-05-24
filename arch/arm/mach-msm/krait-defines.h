@@ -16,13 +16,37 @@
  * For easy use with modifiying voltages and freq tables
  */
 
+
 /* common freq table define */
+#ifdef CONFIG_OC_ULTIMATE
 #define CPU_MAX_NUM_FREQS            23
+#else
+#ifdef CONFIG_CPU_OVERCLOCK
+#define CPU_MAX_NUM_FREQS            20
+#else
+#define CPU_MAX_NUM_FREQS            16
+#endif
+#endif
+
 
 /* max freq with SEC dvfs enabled in .config */
+#ifdef CONFIG_OC_ULTIMATE
+#define SEC_DVFS_MAX_FREQ       2268000
+#else
+#ifdef CONFIG_CPU_OVERCLOCK
 #define SEC_DVFS_MAX_FREQ       2106000
+#else
+#define SEC_DVFS_MAX_FREQ       1890000
+#endif
+#endif
 
-/* min amd max allowed voltage */
+
+/* min amd max allowed voltage via sysfs */
+#ifdef CONFIG_CPU_OVERCLOCK
 #define HFPLL_MIN_VDD		 800000
 #define HFPLL_MAX_VDD		1400000
+#else
+#define HFPLL_MIN_VDD		 800000
+#define HFPLL_MAX_VDD		1300000
+#endif
 

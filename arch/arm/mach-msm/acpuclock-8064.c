@@ -47,7 +47,11 @@ static struct scalable scalable[] __initdata = {
 		.aux_clk_sel = 3,
 		.sec_clk_sel = 2,
 		.l2cpmr_iaddr = 0x4501,
+#ifdef CONFIG_CPU_OVERCLOCK
 		.vreg[VREG_CORE] = { "krait0", 1400000 },
+#else
+		.vreg[VREG_CORE] = { "krait0", 1300000 },
+#endif
 		.vreg[VREG_MEM]  = { "krait0_mem", 1150000 },
 		.vreg[VREG_DIG]  = { "krait0_dig", 1150000 },
 		.vreg[VREG_HFPLL_A] = { "krait0_hfpll", 1800000 },
@@ -58,7 +62,11 @@ static struct scalable scalable[] __initdata = {
 		.aux_clk_sel = 3,
 		.sec_clk_sel = 2,
 		.l2cpmr_iaddr = 0x5501,
+#ifdef CONFIG_CPU_OVERCLOCK
 		.vreg[VREG_CORE] = { "krait1", 1400000 },
+#else
+		.vreg[VREG_CORE] = { "krait1", 1300000 },
+#endif
 		.vreg[VREG_MEM]  = { "krait1_mem", 1150000 },
 		.vreg[VREG_DIG]  = { "krait1_dig", 1150000 },
 		.vreg[VREG_HFPLL_A] = { "krait1_hfpll", 1800000 },
@@ -69,7 +77,11 @@ static struct scalable scalable[] __initdata = {
 		.aux_clk_sel = 3,
 		.sec_clk_sel = 2,
 		.l2cpmr_iaddr = 0x6501,
+#ifdef CONFIG_CPU_OVERCLOCK
 		.vreg[VREG_CORE] = { "krait2", 1400000 },
+#else
+		.vreg[VREG_CORE] = { "krait2", 1300000 },
+#endif
 		.vreg[VREG_MEM]  = { "krait2_mem", 1150000 },
 		.vreg[VREG_DIG]  = { "krait2_dig", 1150000 },
 		.vreg[VREG_HFPLL_A] = { "krait2_hfpll", 1800000 },
@@ -80,7 +92,11 @@ static struct scalable scalable[] __initdata = {
 		.aux_clk_sel = 3,
 		.sec_clk_sel = 2,
 		.l2cpmr_iaddr = 0x7501,
+#ifdef CONFIG_CPU_OVERCLOCK
 		.vreg[VREG_CORE] = { "krait3", 1400000 },
+#else
+		.vreg[VREG_CORE] = { "krait3", 1300000 },
+#endif
 		.vreg[VREG_MEM]  = { "krait3_mem", 1150000 },
 		.vreg[VREG_DIG]  = { "krait3_dig", 1150000 },
 		.vreg[VREG_HFPLL_A] = { "krait3_hfpll", 1800000 },
@@ -150,13 +166,20 @@ static struct acpu_level tbl_PVS2_2000MHz[] __initdata = {
 	{ 1, {  1566000, HFPLL, 1, 0x3A }, L2(15), 1075000 },
 	{ 1, {  1674000, HFPLL, 1, 0x3E }, L2(15), 1112500 },
 	{ 1, {  1782000, HFPLL, 1, 0x42 }, L2(15), 1162500 },
-	{ 1, {  1836000, HFPLL, 1, 0x44 }, L2(15), 1187500 },
+        { 1, {  1836000, HFPLL, 1, 0x44 }, L2(15), 1187500 }
 	{ 1, {  1890000, HFPLL, 1, 0x46 }, L2(15), 1212500 },
-	{ 1, {  1944000, HFPLL, 1, 0x48 }, L2(15), 1237500 },
-	{ 1, {  1998000, HFPLL, 1, 0x4A }, L2(15), 1262500 },
+#ifdef CONFIG_CPU_OVERCLOCK
+	{ 1, {  1944000, HFPLL, 1, 0x48 }, L2(15), 1225000 },
+	{ 1, {  1998000, HFPLL, 1, 0x4A }, L2(15), 1250000 },
 	{ 1, {  2052000, HFPLL, 1, 0x4C }, L2(15), 1287500 },
 	{ 1, {  2106000, HFPLL, 1, 0x4E }, L2(15), 1300000 },
+#ifdef CONFIG_OC_ULTIMATE
+        { 1, {  2160000, HFPLL, 1, 0x50 }, L2(15), 1337500 },
+        { 1, {  2214000, HFPLL, 1, 0x52 }, L2(15), 1362500 },
+        { 1, {  2268000, HFPLL, 1, 0x54 }, L2(15), 1387500 },
 	{ 0, { 0 } }
+#endif
+#endif
 };
 
 static struct pvs_table pvs_tables[NUM_SPEED_BINS][NUM_PVS] __initdata = {
