@@ -1,8 +1,10 @@
 /*
- * Author: Paul Reioux aka Faux123 <reioux@gmail.com> Expanded by Matt Filetto <matt.filetto@gmail.com>
+ * Author: Paul Reioux aka Faux123 <reioux@gmail.com> 
+ * Modified by Matt Filetto <matt.filetto@gmail.com>
  *
  * krait-defines
- * Copyright 2013 Paul Reioux - Copyright 2013 Matt Filetto
+ * Copyright 2013 Paul Reioux
+*  Copyright 2013 Matt Filetto
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -41,12 +43,12 @@
 #endif
 
 
-/* min amd max allowed voltage via sysfs */
+/* min amd max allowed voltage */
 #ifdef CONFIG_CPU_OVERCLOCK
-#define HFPLL_MIN_VDD		 800000
-#define HFPLL_MAX_VDD		1400000
+#define HFPLL_MIN_VDD		 600000
+#define HFPLL_MAX_VDD		1500000
 #else
-#define HFPLL_MIN_VDD		 800000
+#define HFPLL_MIN_VDD		 600000
 #define HFPLL_MAX_VDD		1300000
 #endif
 

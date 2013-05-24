@@ -14,7 +14,7 @@
 #include <linux/regulator/pm8xxx-regulator.h>
 
 #include "board-8064.h"
-
+#include "krait-defines.h"
 
 #ifdef CONFIG_REGULATOR_MAX77693
 #include <linux/mfd/max77693.h>
@@ -722,30 +722,14 @@ mpq8064_gpio_regulator_pdata[] __devinitdata = {
 /* SAW regulator constraints */
 struct regulator_init_data msm8064_saw_regulator_pdata_8921_s5 =
 	/*	      ID  vreg_name	       min_uV   max_uV */
-#ifdef CONFIG_CPU_OVERCLOCK
-	SAW_VREG_INIT(S5, "8921_s5",	       600000, 1400000);
-#else
-	SAW_VREG_INIT(S5, "8921_s5",	       600000, 1300000);
-#endif
+	SAW_VREG_INIT(S5, "8921_s5",	       HFPLL_MIN_VDD, HFPLL_MAX_VDD);
 struct regulator_init_data msm8064_saw_regulator_pdata_8921_s6 =
-#ifdef CONFIG_CPU_OVERCLOCK
-	SAW_VREG_INIT(S6, "8921_s6",	       600000, 1400000);
-#else
-	SAW_VREG_INIT(S6, "8921_s6",	       600000, 1300000);
-#endif
+	SAW_VREG_INIT(S6, "8921_s6",	       HFPLL_MIN_VDD, HFPLL_MAX_VDD);
 struct regulator_init_data msm8064_saw_regulator_pdata_8821_s0 =
 	/*	      ID       vreg_name	min_uV  max_uV */
-#ifdef CONFIG_CPU_OVERCLOCK
-	SAW_VREG_INIT(8821_S0, "8821_s0",       600000, 1400000);
-#else
-	SAW_VREG_INIT(8821_S0, "8821_s0",       600000, 1300000);
-#endif
+	SAW_VREG_INIT(8821_S0, "8821_s0",       HFPLL_MIN_VDD, HFPLL_MAX_VDD);
 struct regulator_init_data msm8064_saw_regulator_pdata_8821_s1 =
-#ifdef CONFIG_CPU_OVERCLOCK
-	SAW_VREG_INIT(8821_S1, "8821_s1",       600000, 1400000);
-#else
-	SAW_VREG_INIT(8821_S1, "8821_s1",       600000, 1300000);
-#endif
+	SAW_VREG_INIT(8821_S1, "8821_s1",       HFPLL_MIN_VDD, HFPLL_MAX_VDD);
 
 /* PM8921 regulator constraints */
 struct pm8xxx_regulator_platform_data
