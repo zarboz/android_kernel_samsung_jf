@@ -782,7 +782,6 @@ static int mipi_panel_power_oled(int enable)
 	if (enable) {
 		set_screen_on_off_mhz(true);
 		if (ktoonservative_is_activef)
-			screen_is_on_relay_kt(true);
 			
 		pr_info("[lcd] PANEL ON\n");
 
@@ -819,7 +818,6 @@ static int mipi_panel_power_oled(int enable)
 		
 		set_screen_on_off_mhz(false);
 		if (ktoonservative_is_activef)
-			screen_is_on_relay_kt(false);
 
 		pr_info("[lcd] PANEL OFF\n");
 

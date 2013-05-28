@@ -788,7 +788,6 @@ static irqreturn_t cypress_touchkey_interrupt(int irq, void *dev_id)
 	
 	if (kt_is_active_benabled && press == 1 && (info->keycode[code] == 158 || info->keycode[code] == 139))
 	{
-		boostpulse_relay_kt();
 		//pr_alert("KEY_PRESS: %d-%d\n", info->keycode[code], press);
 	}
 	
