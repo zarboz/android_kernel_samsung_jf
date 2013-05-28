@@ -1505,6 +1505,7 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 			input_mt_sync(rmi4_data->input_dev);
 #endif
 			if (ktoonservative_is_activef)
+				boostpulse_relay_kt();
 			hotplugap_boostpulse();
 			
 			/*if (!rmi4_data->finger[finger].state)
