@@ -710,7 +710,7 @@ static ssize_t store_screen_off_GPU_mhz(struct cpufreq_policy *policy,
 	ret = sscanf(buf, "%ld", &value);
 	if (value > 500000000)
 		value = 500000000;
-	if (value < 128000000 && value != 0)
+	if (value < 128000000)
 		value = 128000000;
 	Lscreen_off_GPU_mhz = value;
 
@@ -2552,6 +2552,10 @@ static void cpufreq_gov_resume(void)
 		if (Lscreen_off_GPU_mhz > 0)
 			set_max_gpuclk_so(0);
 	}
+	
+	//GPU Control
+	if (Lscreen_off_GPU_mhz != 0)
+		set_max_gpuclk_so(0);
 }
 
 static void cpufreq_gov_suspend(void)
@@ -2601,15 +2605,10 @@ static void cpufreq_gov_suspend(void)
 			pr_alert("cpufreq_gov_suspend_freq: %u\n", value);
 		}
 	}
+	
 	//GPU Control
-	if (Lscreen_off_GPU_mhz > 0 && (!call_in_progress || Ldisable_som_call_in_progress == 0))
+	if (Lscreen_off_GPU_mhz != 0)
 		set_max_gpuclk_so(Lscreen_off_GPU_mhz);
-}
-
-void set_call_in_progress(bool state)
-{
-	call_in_progress = state;
-	//pr_alert("CALL IN PROGRESS: %d\n", state);
 }
 
 void set_screen_on_off_mhz(bool onoff)
