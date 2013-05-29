@@ -10,8 +10,9 @@ export USE_CCACHE=1
 #Enable FIPS mode
 export USE_SEC_FIPS_MODE=true
 export ARCH=arm
+echo "#### T-MOBILE KERNEL BUILD ###"
 echo "Setting compiler toolchain..."
-export CROSS_COMPILE=/home/albinoman887/android/system/prebuilt/linux-x86/toolchain/linaro/bin/arm-unknown-linux-gnueabi-
+export CROSS_COMPILE=/home/albinoman887/android/system/prebuilt/linux-x86/toolchain/linaro/bin/arm-eabi-
 
 time_start=$(date +%s.%N)
 
@@ -55,9 +56,7 @@ fi;
 
 echo "Copy modules to Package"
 cp -a $(find . -name *.ko -print |grep -v initramfs) $PACKAGEDIR/system/lib/modules/
-cp 00post-init.sh $PACKAGEDIR/system/etc/init.d/00post-init.sh
-cp $PACKAGEDIR../89chronic $PACKAGEDIR/system/etc/init.d/89chronic
-cp ../Ramdisks/libsqlite.so $PACKAGEDIR/system/lib/libsqlite.so
+cp Packages/89chronic $PACKAGEDIR/system/etc/init.d/89chronic
 
 if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 	echo "Copy zImage to Package"
