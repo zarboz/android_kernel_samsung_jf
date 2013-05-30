@@ -10,17 +10,15 @@ export USE_CCACHE=1
 #Enable FIPS mode
 export USE_SEC_FIPS_MODE=true
 export ARCH=arm
-echo "#### T-MOBILE KERNEL BUILD ###"
+echo "### T-MOBILE KERNEL BUILD ###"
 echo "Setting compiler toolchain..."
 export CROSS_COMPILE=/home/albinoman887/android/system/prebuilt/linux-x86/toolchain/linaro/bin/arm-eabi-
 
 time_start=$(date +%s.%N)
 
 echo "Remove old Package Files"
-rm -rf $PACKAGEDIR/*
-
+rm -rf $PACKAGEDIR/* > /dev/null 2>&1
 echo "Setup Package Directory"
-mkdir -p $PACKAGEDIR/system/app
 mkdir -p $PACKAGEDIR/system/lib/modules
 mkdir -p $PACKAGEDIR/system/etc/init.d
 
@@ -28,19 +26,18 @@ echo "Create initramfs dir"
 mkdir -p $INITRAMFS_DEST
 
 echo "Remove old initramfs dir"
-rm -rf $INITRAMFS_DEST/*
-
+rm -rf $INITRAMFS_DEST/* > /dev/null 2>&1
 echo "Copy new initramfs dir"
 cp -R $INITRAMFS_SOURCE/* $INITRAMFS_DEST
 
 echo "chmod initramfs dir"
 chmod -R g-w $INITRAMFS_DEST/*
-rm $(find $INITRAMFS_DEST -name EMPTY_DIRECTORY -print)
+rm $(find $INITRAMFS_DEST -name EMPTY_DIRECTORY -print) > /dev/null 2>&1
 rm -rf $(find $INITRAMFS_DEST -name .git -print)
 
 echo "Remove old zImage"
-rm $PACKAGEDIR/zImage
-rm arch/arm/boot/zImage
+rm $PACKAGEDIR/zImage > /dev/null 2>&1
+rm arch/arm/boot/zImage > /dev/null 2>&1
 
 echo "Make the kernel"
 make VARIANT_DEFCONFIG=jf_tmo_defconfig SELINUX_DEFCONFIG=jfselinux_defconfig SELINUX_LOG_DEFCONFIG=jfselinux_log_defconfig chronic_jf_defconfig
@@ -70,7 +67,7 @@ if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 	cp -R ../META-INF .
 	rm ramdisk.gz
 	rm zImage
-	rm ../ChronicKernel-JFtmo*.zip
+	rm ../ChronicKernel-JFtmo*.zip > /dev/null 2>&1
 	zip -r ../ChronicKernel-JFtmo-$curdate.zip .
 	cd $KERNELDIR
 else
