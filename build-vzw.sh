@@ -71,7 +71,7 @@ if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 	rm $PACKAGEDIR/boot.img
 	#cp loki_flash $PACKAGEDIR/loki_flash
 	cd $PACKAGEDIR
-	cp -R ../META-INF-SEC ./META-INF
+	cp -R ../META-INF-LOKI ./META-INF
 	rm ramdisk.gz
 	rm zImage
         rm -r ../ChronicKernel-JFvzw*.zip
