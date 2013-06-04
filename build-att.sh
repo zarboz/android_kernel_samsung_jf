@@ -74,6 +74,7 @@ if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 	cp -R ../META-INF-SEC ./META-INF
 	rm ramdisk.gz
 	rm zImage
+        rm -r ../ChronicKernel-JFatt*.zip
 	zip -r ../ChronicKernel-JFatt-$curdate.zip .
 	cd $KERNELDIR
 else
