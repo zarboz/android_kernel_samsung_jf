@@ -10,10 +10,9 @@ export USE_CCACHE=1
 #Enable FIPS mode
 export USE_SEC_FIPS_MODE=true
 export ARCH=arm
-echo "### T-MOBILE KERNEL BUILD ###"
+echo "### Verizon KERNEL BUILD ###"
 echo "Setting compiler toolchain..."
 export CROSS_COMPILE=/home/albinoman887/android/system/prebuilt/linux-x86/toolchain/linaro/bin/arm-eabi-
-
 
 time_start=$(date +%s.%N)
 
@@ -75,7 +74,7 @@ if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 	rm ramdisk.gz
 	rm zImage
         rm -r ../ChronicKernel-JFvzw*.zip
-	zip -r ../ChronicKernel-JFvzw-$curdate.zip ..
+	zip -r ../ChronicKernel-JFvzw-$curdate.zip .
 	cd $KERNELDIR
 else
 	echo "KERNEL DID NOT BUILD! no zImage exist"
