@@ -8,10 +8,12 @@
 
 
 # Config 3D GPU clock
-# 320000000 = 320mhz (underclocked)
-# 400000000 = 400mhz (default)
+# 320000000 = 320mhz (Underclocked)
+# 400000000 = 400mhz (Default)
 # 450000000 = 450mhz (Recomended For balance of Performance and Battery life)
-# 500000000 = 500mhz (performance)
+# 504000000 = 504mhz (Performance)
+# 544000000 = 544mhz (Super)
+# 604000000 = 604mhz (Crazy)
 GPU=450000000
 
 
