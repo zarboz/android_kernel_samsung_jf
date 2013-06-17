@@ -14,7 +14,7 @@
 # 504000000 = 504mhz (Performance)
 # 544000000 = 544mhz (Super)
 # 601000000 = 601mhz (Crazy)
-GPU=450000000
+GPU=504000000
 
 
 # Enable Fastcharge
