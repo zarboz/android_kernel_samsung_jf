@@ -12,8 +12,9 @@
 # 400000000 = 400mhz (Default)
 # 450000000 = 450mhz (Recomended For balance of Performance and Battery life)
 # 504000000 = 504mhz (Performance)
-# 544000000 = 544mhz (Super)
-# 601000000 = 601mhz (Crazy)
+# 545000000 = 545mhz (Super)
+# 600000000 = 600mhz (Crazy)
+# 627000000 = 627mhz (Insane)
 GPU=504000000
 
 
