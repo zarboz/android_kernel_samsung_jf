@@ -7,6 +7,27 @@
 # Configure your options here #
 
 
+# Config default CPU Gonvernor
+# Kernel Default: intellidemand
+# Uncomment desired governor by removing the "#" symbal before desired gov
+# and add a "#" to the old line
+
+# Possible values
+
+# GOV+smartmax
+# GOV=smartassH3
+# GOV=linoheart
+# GOV=badass
+# GOV=wheatley
+# GOV=userspace
+# GOV=consevative
+# GOV=interactive
+# GOV=lagfee
+# GOV=performance
+# GOV=ondemand
+GOV=intellidemand
+
+
 # Config 3D GPU clock
 # 320000000 = 320mhz (Underclocked)
 # 400000000 = 400mhz (Default)
@@ -36,6 +57,12 @@ DYNFSYNC=1
 
 
 ################# DON'T CHANGE ANYTHING BELOW THIS LINE #################
+
+## Config CPU governor
+    echo "$GOV" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+    echo "$GOV" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
+    echo "$GOV" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
+    echo "$GOV" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
 
 
 # Config 3D GPU setting
