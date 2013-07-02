@@ -56,7 +56,7 @@ fi;
 
 echo "Copy modules to Package"
 cp -a $(find . -name *.ko -print |grep -v initramfs) $PACKAGEDIR/system/lib/modules/
-cp Packages/89chronic $PACKAGEDIR/system/etc/init.d/89chronic
+cp Packages/chronic-config.sh $PACKAGEDIR/system/etc/chronic-config.sh
 
 if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 	echo "Copy zImage to Package"
