@@ -27,6 +27,15 @@
 # GOV=ondemand
 GOV=intellidemand
 
+# Config CPU frequency
+# Default: 1890000 (1890Mhtz)
+# Recomended: 1998000 (1.99Ghtz)
+# Range: 81000 - 2322000 (81Mhtz - 2.32Ghtz)
+#
+# Max/Min
+MAXFREQ=1890000
+MINFREQ=378000
+
 
 # Config 3D GPU clock
 # 320000000 = 320mhz (Underclocked)
@@ -63,6 +72,28 @@ DYNFSYNC=1
     echo "$GOV" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
     echo "$GOV" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
     echo "$GOV" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
+
+
+# Config CPU Frequency
+    chmod 644 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+    echo $MAXFREQ > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+    chmod 644 /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+    echo $MINFREQ > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
+
+    chmod 644 /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq
+    echo $MAXFREQ > /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq
+    chmod 644 /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq
+    echo $MINFREQ > /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq
+
+    chmod 644 /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq
+    echo $MAXFREQ > /sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq
+    chmod 644 /sys/devices/system/cpu/cpu2/cpufreq/scaling_min_freq
+    echo $MINFREQ > /sys/devices/system/cpu/cpu2/cpufreq/scaling_min_freq
+
+    chmod 644 /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq
+    echo $MAXFREQ > /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq
+    chmod 644 /sys/devices/system/cpu/cpu3/cpufreq/scaling_min_freq
+    echo $MINFREQ > /sys/devices/system/cpu/cpu3/cpufreq/scaling_min_freq
 
 
 # Config 3D GPU setting
