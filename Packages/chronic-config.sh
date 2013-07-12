@@ -67,12 +67,6 @@ DYNFSYNC=1
 
 ################# DON'T CHANGE ANYTHING BELOW THIS LINE #################
 
-## Config CPU governor
-    echo "$GOV" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-    echo "$GOV" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
-    echo "$GOV" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
-    echo "$GOV" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
-
 
 # Config CPU Frequency
     chmod 644 /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
@@ -94,6 +88,13 @@ DYNFSYNC=1
     echo $MAXFREQ > /sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq
     chmod 644 /sys/devices/system/cpu/cpu3/cpufreq/scaling_min_freq
     echo $MINFREQ > /sys/devices/system/cpu/cpu3/cpufreq/scaling_min_freq
+
+
+## Config CPU governor
+    echo "$GOV" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+    echo "$GOV" > /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor
+    echo "$GOV" > /sys/devices/system/cpu/cpu2/cpufreq/scaling_governor
+    echo "$GOV" > /sys/devices/system/cpu/cpu3/cpufreq/scaling_governor
 
 
 # Config 3D GPU setting
