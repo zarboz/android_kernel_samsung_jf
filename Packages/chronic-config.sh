@@ -106,4 +106,4 @@ DYNFSYNC=1
 
 
 # Config dyn Fsync
-    echo $DYNFSYNC > sys/kernel/dyn_fsync/Dyn_fsync_active
+    echo $DYNFSYNC > /sys/kernel/dyn_fsync/Dyn_fsync_active
