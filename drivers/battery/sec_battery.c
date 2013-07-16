@@ -19,7 +19,6 @@ unsigned int gmhz_lvl_high = 0;
 unsigned int gbatt_soc = 0;
 unsigned int gbatt_chg = 0;
 unsigned int gdisable_chrg = 0;
-extern unsigned int set_battery_max_level(unsigned int value);
 static unsigned int Lscreen_off_scaling_mhz_orig = 0;
 
 static struct device_attribute sec_battery_attrs[] = {
@@ -1592,7 +1591,6 @@ static void sec_bat_get_battery_info(
 	gbatt_chg = battery->cable_type;
 	mhz_lvl = get_batt_level();
 	if (mhz_lvl > 0)
-		Lscreen_off_scaling_mhz_orig = set_battery_max_level(mhz_lvl);
 
 	switch (battery->pdata->thermal_source) {
 	case SEC_BATTERY_THERMAL_SOURCE_FG:

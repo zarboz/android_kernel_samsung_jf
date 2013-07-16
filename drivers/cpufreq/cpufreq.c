@@ -47,7 +47,6 @@ extern ssize_t acpuclk_get_vdd_levels_str(char *buf, int isApp);
 extern ssize_t acpuclk_get_vdd_levels_str_stock(char *buf, int isApp);
 extern void acpuclk_UV_mV_table(int cnt, int vdd_uv[]);
 extern unsigned int get_enable_oc(void);
-extern unsigned int get_cable_state(void);
 
 static bool Lonoff = false;
 static unsigned int Lscreen_off_scaling_enable = 0;
@@ -57,24 +56,12 @@ static unsigned long Lscreen_off_GPU_mhz = 0;
 static unsigned int Lbluetooth_scaling_mhz = 0;
 static unsigned int Lbluetooth_scaling_mhz_orig = 378000;
 static bool bluetooth_scaling_mhz_active = false;
-static unsigned int Lcharging_min_mhz = 0;
-static unsigned int Lcharging_min_mhz_orig = 378000;
-static unsigned int Lcharging_max_mhz = 0;
-static unsigned int Lcharging_max_mhz_orig = 1890000;
-static bool Lcharging_mhz_active;
-static bool Lcharging_mhz_active_block_min;
-static bool Lcharging_mhz_active_block_max;
 static bool call_in_progress=false;
 static unsigned int Ldisable_som_call_in_progress = 0;
 static char scaling_governor_screen_off_sel[16];
 static char scaling_governor_screen_off_sel_prev[16];
 static char scaling_sched_screen_off_sel[16];
 static char scaling_sched_screen_off_sel_prev[16];
-static char scaling_governor_gps_sel[16];
-static char scaling_governor_gps_sel_prev[16];
-static char scaling_sched_gps_sel[16];
-static char scaling_sched_gps_sel_prev[16];
-static bool GPS_override = false;
 extern int elevator_change_relay(const char *name, int screen_status);
 static unsigned int Lenable_auto_hotplug = 0;
 
@@ -94,8 +81,6 @@ struct cpufreq_policy trmlpolicy[10];
 unsigned int kthermal_limit = 0;
 
 extern void apenable_auto_hotplug(bool state);
-
-static bool never_set[10];
 
 /**
  * The "cpufreq driver" - the arch- or hardware-dependent low
@@ -506,93 +491,6 @@ static ssize_t store_##file_name					\
 	return ret ? ret : count;					\
 }
 
-void __ref send_cable_state(unsigned int state)
-{
-	if (state)
-	{
-		pr_alert("CHARGING MHZ ON %u-%u\n", Lcharging_min_mhz, Lcharging_max_mhz);
-		if (Lcharging_min_mhz && ((bluetooth_scaling_mhz_active && Lcharging_min_mhz > Lbluetooth_scaling_mhz) || !bluetooth_scaling_mhz_active))
-		{
-			struct cpufreq_policy new_policy;
-			int cpu, ret;
-			cpufreq_set_limit_defered(USER_MIN_START, Lcharging_min_mhz);
-			//Set extra CPU cores to same speed
-			for (cpu = 1; cpu < CPUS_AVAILABLE; cpu++)
-			{
-				if (!cpu_online(cpu)) cpu_up(cpu);
-				if (&trmlpolicy[cpu] != NULL)
-				{
-					ret = cpufreq_get_policy(&new_policy, cpu);
-					new_policy.min = Lcharging_min_mhz;
-					__cpufreq_set_policy(&trmlpolicy[cpu], &new_policy);
-				}				
-			}
-			Lcharging_mhz_active = true;
-		}
-		if (Lcharging_max_mhz)
-		{
-			struct cpufreq_policy new_policy;
-			int cpu, ret;
-			cpufreq_set_limit_defered(USER_MAX_START, Lcharging_max_mhz);
-			//Set extra CPU cores to same speed
-			for (cpu = 1; cpu < CPUS_AVAILABLE; cpu++)
-			{
-				if (!cpu_online(cpu)) cpu_up(cpu);
-				if (&trmlpolicy[cpu] != NULL)
-				{
-					ret = cpufreq_get_policy(&new_policy, cpu);
-					new_policy.max = Lcharging_max_mhz;
-					__cpufreq_set_policy(&trmlpolicy[cpu], &new_policy);
-				}				
-			}
-			Lcharging_mhz_active = true;
-		}
-	}
-	else if (Lcharging_mhz_active)
-	{
-		unsigned int value;
-		value = Lcharging_min_mhz_orig;
-		pr_alert("CHARGING MHZ OFF %u-%u\n", Lcharging_min_mhz, Lcharging_max_mhz);
-		if (value && !Lcharging_mhz_active_block_min && ((bluetooth_scaling_mhz_active && value > Lbluetooth_scaling_mhz) || !bluetooth_scaling_mhz_active))
-		{
-			struct cpufreq_policy new_policy;
-			int cpu, ret;
-			cpufreq_set_limit_defered(USER_MIN_START, value);
-			//Set extra CPU cores to same speed
-			for (cpu = 1; cpu < CPUS_AVAILABLE; cpu++)
-			{
-				if (!cpu_online(cpu)) cpu_up(cpu);
-				if (&trmlpolicy[cpu] != NULL)
-				{
-					ret = cpufreq_get_policy(&new_policy, cpu);
-					new_policy.min = value;
-					__cpufreq_set_policy(&trmlpolicy[cpu], &new_policy);
-				}				
-			}
-		}
-		value = Lcharging_max_mhz_orig;
-		if (value && !Lcharging_mhz_active_block_max)
-		{
-			struct cpufreq_policy new_policy;
-			int cpu, ret;
-			cpufreq_set_limit_defered(USER_MAX_START, value);
-			//Set extra CPU cores to same speed
-			for (cpu = 1; cpu < CPUS_AVAILABLE; cpu++)
-			{
-				if (!cpu_online(cpu)) cpu_up(cpu);
-				if (&trmlpolicy[cpu] != NULL)
-				{
-					ret = cpufreq_get_policy(&new_policy, cpu);
-					new_policy.max = value;
-					__cpufreq_set_policy(&trmlpolicy[cpu], &new_policy);
-				}				
-			}
-		}
-		if (!Lcharging_mhz_active_block_min && !Lcharging_mhz_active_block_max)
-			Lcharging_mhz_active = false;
-	}
-}
-
 static ssize_t __ref store_scaling_min_freq(struct cpufreq_policy *policy, const char *buf, size_t count)
 {
 	unsigned int ret = -EINVAL;
@@ -630,7 +528,6 @@ static ssize_t __ref store_scaling_min_freq(struct cpufreq_policy *policy, const
 	}
 	
 	Lbluetooth_scaling_mhz_orig = value;
-	Lcharging_min_mhz_orig = value;
 	
 	return count;
 }
@@ -673,7 +570,6 @@ static ssize_t __ref store_scaling_max_freq(struct cpufreq_policy *policy, const
 		}
 		
 		Lscreen_off_scaling_mhz_orig = value;
-		Lcharging_max_mhz_orig = value;
 	}
 	return count;
 }
@@ -840,70 +736,6 @@ static ssize_t store_bluetooth_scaling_mhz(struct cpufreq_policy *policy,
 	return count;
 }
 
-static ssize_t show_charging_min_mhz(struct cpufreq_policy *policy, char *buf)
-{
-	return sprintf(buf, "%u\n", Lcharging_min_mhz);
-}
-static ssize_t store_charging_min_mhz(struct cpufreq_policy *policy,
-					const char *buf, size_t count)
-{
-	unsigned int value = 0;
-	unsigned int cbl_state;
-	unsigned int ret;
-	ret = sscanf(buf, "%u", &value);
-	if (value > GLOBALKT_MAX_FREQ_LIMIT)
-		value = GLOBALKT_MAX_FREQ_LIMIT;
-	if (value < GLOBALKT_MIN_FREQ_LIMIT && value != 0)
-		value = GLOBALKT_MIN_FREQ_LIMIT;
-	Lcharging_min_mhz = value;
-	
-	cbl_state = get_cable_state();
-	if (value == 0 && Lcharging_mhz_active && cbl_state)
-	{
-		Lcharging_mhz_active_block_max = true;
-		send_cable_state(0);
-		Lcharging_mhz_active_block_max = false;
-		if (Lcharging_max_mhz ==0)
-			Lcharging_mhz_active = false;
-	}
-	else
-		send_cable_state(cbl_state);
-
-	return count;
-}
-
-static ssize_t show_charging_max_mhz(struct cpufreq_policy *policy, char *buf)
-{
-	return sprintf(buf, "%u\n", Lcharging_max_mhz);
-}
-static ssize_t store_charging_max_mhz(struct cpufreq_policy *policy,
-					const char *buf, size_t count)
-{
-	unsigned int value = 0;
-	unsigned int cbl_state;
-	unsigned int ret;
-	ret = sscanf(buf, "%u", &value);
-	if (value > GLOBALKT_MAX_FREQ_LIMIT)
-		value = GLOBALKT_MAX_FREQ_LIMIT;
-	if (value < GLOBALKT_MIN_FREQ_LIMIT && value != 0)
-		value = GLOBALKT_MIN_FREQ_LIMIT;
-	Lcharging_max_mhz = value;
-
-	cbl_state = get_cable_state();
-	if (value == 0 && Lcharging_mhz_active && cbl_state)
-	{
-		Lcharging_mhz_active_block_min = true;
-		send_cable_state(0);
-		Lcharging_mhz_active_block_min = false;
-		if (Lcharging_min_mhz ==0)
-			Lcharging_mhz_active = false;
-	}
-	else
-		send_cable_state(cbl_state);
-
-	return count;
-}
-
 static ssize_t show_scaling_governor_screen_off(struct cpufreq_policy *policy, char *buf)
 {
 	return scnprintf(buf, 16, "%s\n",
@@ -915,32 +747,6 @@ static ssize_t store_scaling_governor_screen_off(struct cpufreq_policy *policy,
 {
 	unsigned int ret = -EINVAL;
 	ret = sscanf(buf, "%15s", scaling_governor_screen_off_sel);
-	return count;
-}
-
-static ssize_t show_scaling_governor_gps(struct cpufreq_policy *policy, char *buf)
-{
-	return scnprintf(buf, 16, "%s\n", scaling_governor_gps_sel);
-}
-
-static ssize_t store_scaling_governor_gps(struct cpufreq_policy *policy,
-          const char *buf, size_t count)
-{
-	unsigned int ret = -EINVAL;
-	ret = sscanf(buf, "%15s", scaling_governor_gps_sel);
-	return count;
-}
-
-static ssize_t show_scaling_sched_gps(struct cpufreq_policy *policy, char *buf)
-{
-	return scnprintf(buf, 16, "%s\n", scaling_sched_gps_sel);
-}
-
-static ssize_t store_scaling_sched_gps(struct cpufreq_policy *policy,
-          const char *buf, size_t count)
-{
-	unsigned int ret = -EINVAL;
-	ret = sscanf(buf, "%15s", scaling_sched_gps_sel);
 	return count;
 }
 
@@ -996,6 +802,9 @@ static ssize_t store_scaling_governor(struct cpufreq_policy *policy,
 	unsigned int ret = -EINVAL;
 	char	str_governor[16];
 	struct cpufreq_policy new_policy;
+	char *envp[3];
+	char buf1[64];
+	char buf2[64];
 
 	ret = cpufreq_get_policy(&new_policy, policy->cpu);
 	if (ret)
@@ -1004,11 +813,7 @@ static ssize_t store_scaling_governor(struct cpufreq_policy *policy,
 	ret = sscanf(buf, "%15s", str_governor);
 	if (ret != 1)
 		return -EINVAL;
-	pr_alert("STORE GOVERNOR %s - %s", str_governor, policy->governor->name);
-	if (!never_set[policy->cpu] && !strnicmp(str_governor, "ondemand", CPUFREQ_NAME_LEN) && policy->cpu > 0)
-		return -EINVAL;
-	never_set[policy->cpu] = true;
-	
+
 	if (cpufreq_parse_governor(str_governor, &new_policy.policy,
 						&new_policy.governor))
 		return -EINVAL;
@@ -1021,7 +826,14 @@ static ssize_t store_scaling_governor(struct cpufreq_policy *policy,
 	policy->user_policy.governor = policy->governor;
 
 	sysfs_notify(&policy->kobj, NULL, "scaling_governor");
-	
+
+	snprintf(buf1, sizeof(buf1), "GOV=%s", policy->governor->name);
+	snprintf(buf2, sizeof(buf2), "CPU=%u", policy->cpu);
+	envp[0] = buf1;
+	envp[1] = buf2;
+	envp[2] = NULL;
+	kobject_uevent_env(cpufreq_global_kobject, KOBJ_ADD, envp);
+
 	if (ret)
 		return ret;
 	else
@@ -1320,8 +1132,7 @@ unsigned int set_battery_max_level(unsigned int value)
 			vfreq_lock = 0;
 			vfreq_lock_tempOFF = true;
 		}
-		if (!Lcharging_mhz_active)
-			cpufreq_set_limit_defered(USER_MAX_START, value);
+		cpufreq_set_limit_defered(USER_MAX_START, value);
 		pr_alert("SET_BATTERY_MAX_LEVEL: %u\n", value);
 	}
 	if (Lscreen_off_scaling_mhz_orig != 0)
@@ -1340,7 +1151,7 @@ void set_bluetooth_state(unsigned int val)
 			vfreq_lock = 0;
 			vfreq_lock_tempOFF = true;
 		}
-		if (val == 1 && ((Lcharging_mhz_active && Lbluetooth_scaling_mhz > Lcharging_min_mhz) || !Lcharging_mhz_active))
+		if (val == 1)
 		{
 			bluetooth_scaling_mhz_active = true;
 			value = Lbluetooth_scaling_mhz;
@@ -1350,8 +1161,7 @@ void set_bluetooth_state(unsigned int val)
 		{
 			bluetooth_scaling_mhz_active = false;
 			value = Lbluetooth_scaling_mhz_orig;
-			if ((Lcharging_mhz_active && value > Lcharging_min_mhz) || !Lcharging_mhz_active)
-				cpufreq_set_limit_defered(USER_MIN_START, value);
+			cpufreq_set_limit_defered(USER_MIN_START, value);
 		}
 	}
 }
@@ -1379,13 +1189,9 @@ cpufreq_freq_attr_rw(screen_off_scaling_enable);
 cpufreq_freq_attr_rw(screen_off_scaling_mhz);
 cpufreq_freq_attr_rw(screen_off_GPU_mhz);
 cpufreq_freq_attr_rw(bluetooth_scaling_mhz);
-cpufreq_freq_attr_rw(charging_max_mhz);
-cpufreq_freq_attr_rw(charging_min_mhz);
 cpufreq_freq_attr_rw(disable_som_call_in_progress);
 cpufreq_freq_attr_rw(scaling_governor_screen_off);
 cpufreq_freq_attr_rw(scaling_sched_screen_off);
-cpufreq_freq_attr_rw(scaling_governor_gps);
-cpufreq_freq_attr_rw(scaling_sched_gps);
 cpufreq_freq_attr_rw(enable_auto_hotplug);
 cpufreq_freq_attr_rw(battery_ctrl_batt_lvl_low);
 cpufreq_freq_attr_rw(battery_ctrl_batt_lvl_high);
@@ -1414,13 +1220,9 @@ static struct attribute *default_attrs[] = {
 	&screen_off_scaling_mhz.attr,
 	&screen_off_GPU_mhz.attr,
 	&bluetooth_scaling_mhz.attr,
-	&charging_min_mhz.attr,
-	&charging_max_mhz.attr,
 	&disable_som_call_in_progress.attr,
 	&scaling_governor_screen_off.attr,
 	&scaling_sched_screen_off.attr,
-	&scaling_governor_gps.attr,
-	&scaling_sched_gps.attr,
 	&enable_auto_hotplug.attr,
 	&battery_ctrl_batt_lvl_low.attr,
 	&battery_ctrl_batt_lvl_high.attr,
@@ -2740,8 +2542,7 @@ static void cpufreq_gov_resume(void)
 		mhz_lvl = get_batt_level();
 		if (mhz_lvl > 0)
 			value = mhz_lvl;
-		if (!Lcharging_mhz_active)
-			cpufreq_set_limit_defered(USER_MAX_START, value);
+		cpufreq_set_limit_defered(USER_MAX_START, value);
 		pr_alert("cpufreq_gov_resume_freq: %u\n", value);
 	}
 	
@@ -2783,20 +2584,32 @@ static void cpufreq_gov_suspend(void)
 	else
 		pr_alert("cpufreq_gov_suspend_gov_SCHED_DENIED2: %s\n", scaling_sched_screen_off_sel);
 
-	if (Lscreen_off_scaling_enable == 1)
+	if (Lscreen_off_scaling_enable == 1 && (!call_in_progress || Ldisable_som_call_in_progress == 0))
 	{
+		if ((bluetooth_scaling_mhz_active == true && Lscreen_off_scaling_mhz > Lbluetooth_scaling_mhz) || (bluetooth_scaling_mhz_active == false))
+		{
 			if (vfreq_lock == 1)
 			{
 				vfreq_lock = 0;
 				vfreq_lock_tempOFF = true;
+			}
+			value = Lscreen_off_scaling_mhz;
+			mhz_lvl = get_batt_level();
+			if (mhz_lvl > 0)
+				value = mhz_lvl;
+			cpufreq_set_limit_defered(USER_MAX_START, value);
+			pr_alert("cpufreq_gov_suspend_freq: %u\n", value);
 		}
-		value = Lscreen_off_scaling_mhz;
-		mhz_lvl = get_batt_level();
-		if (mhz_lvl > 0)
-			value = mhz_lvl;
-		cpufreq_set_limit_defered(USER_MAX_START, value);
-		pr_alert("cpufreq_gov_suspend_freq: %u\n", value);
 	}
+	//GPU Control
+	if (Lscreen_off_GPU_mhz > 0 && (!call_in_progress || Ldisable_som_call_in_progress == 0))
+		set_max_gpuclk_so(Lscreen_off_GPU_mhz);
+}
+
+void set_call_in_progress(bool state)
+{
+	call_in_progress = state;
+	//pr_alert("CALL IN PROGRESS: %d\n", state);
 }
 
 void set_screen_on_off_mhz(bool onoff)

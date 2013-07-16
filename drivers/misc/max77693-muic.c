@@ -44,11 +44,6 @@ static struct max77693_muic_info *gInfo;
 /* For restore charger interrupt states */
 static u8 chg_int_state;
 
-extern void send_cable_state(unsigned int state);
-extern void send_cable_state_kt(unsigned int state);
-unsigned int gbatt_chg_prev = 0;
-bool ktoonservative_is_active_chrg = false;
-
 /* MAX77693 MUIC CHG_TYP setting values */
 enum {
 	/* No Valid voltage at VB (Vvb < Vvbdet) */
@@ -663,11 +658,6 @@ static ssize_t max77693_muic_set_apo_factory(struct device *dev,
 }
 #endif /* !CONFIG_MUIC_MAX77693_SUPPORT_CAR_DOCK */
 
-void ktoonservative_is_activechrg(bool val)
-{
-	ktoonservative_is_active_chrg = val;
-}
-
 void max77693_muic_monitor_status(void){
 	int ret;
 	u8 status[2];
@@ -675,21 +665,8 @@ void max77693_muic_monitor_status(void){
 	ret = max77693_bulk_read(gInfo->muic, MAX77693_MUIC_REG_STATUS1, 2, status);
 	dev_info(gInfo->dev, "func:%s, ST1:0x%x, ST2:0x%x CABLE:%d\n", __func__,
 			status[0], status[1], gInfo->cable_type);
-
-	if (gInfo->cable_type != gbatt_chg_prev)
-	{
-		send_cable_state(gInfo->cable_type);
-		if (ktoonservative_is_active_chrg)
-			send_cable_state_kt(gInfo->cable_type);
-	}
-	gbatt_chg_prev = gInfo->cable_type;
 }
 EXPORT_SYMBOL(max77693_muic_monitor_status);
-
-unsigned int get_cable_state(void)
-{
-	return gInfo->cable_type;
-}
 
 #if !defined(CONFIG_MUIC_MAX77693_SUPPORT_CAR_DOCK)
 static DEVICE_ATTR(apo_factory, 0664,
@@ -2601,7 +2578,6 @@ static int __devinit max77693_muic_probe(struct platform_device *pdev)
 		MAX77693_MUIC_REG_CDETCTRL1, cdetctrl1);
 	pr_info("%s: CDETCTRL1(0x%02x)\n", __func__, cdetctrl1);
 
-
 	/* Show Register State */
 	max77693_muic_monitor_status();
 
@@ -2631,6 +2607,7 @@ static int __devinit max77693_muic_probe(struct platform_device *pdev)
 
 	INIT_DELAYED_WORK(&info->mhl_work, max77693_muic_mhl_detect);
 	schedule_delayed_work(&info->mhl_work, msecs_to_jiffies(25000));
+
 
 	return 0;
 
