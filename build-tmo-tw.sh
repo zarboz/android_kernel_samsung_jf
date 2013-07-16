@@ -2,17 +2,18 @@
 export KERNELDIR=`readlink -f .`
 export PARENT_DIR=`readlink -f ..`
 export INITRAMFS_DEST=$KERNELDIR/kernel/usr/initramfs
-export INITRAMFS_SOURCE=`readlink -f ..`/Ramdisks/TW_ATT
+export INITRAMFS_SOURCE=`readlink -f ..`/Ramdisks/TW_TMO
 export CONFIG_AOSP_BUILD=y
-export PACKAGEDIR=$PARENT_DIR/Packages/TW
-#Enable FIPS mode
+export PACKAGEDIR=$KERNELDIR/Packages/TW
+# enable ccache
+export USE_CCACHE=1
 export USE_SEC_FIPS_MODE=true
 export ARCH=arm
 # export CROSS_COMPILE=$PARENT_DIR/linaro4.5/bin/arm-eabi-
 # export CROSS_COMPILE=/home/ktoonsez/kernel/siyah/arm-2011.03/bin/arm-none-eabi-
 # export CROSS_COMPILE=/home/ktoonsez/android/system/prebuilt/linux-x86/toolchain/arm-eabi-4.4.3/bin/arm-eabi-
 # export CROSS_COMPILE=/home/ktoonsez/aokp4.2/prebuilts/gcc/linux-x86/arm/arm-eabi-4.6/bin/arm-eabi-
-export CROSS_COMPILE=$PARENT_DIR/linaro4.7/bin/arm-eabi-
+export CROSS_COMPILE=/home/albinoman887/android/system/prebuilt/linux-x86/toolchain/linaro/bin/arm-eabi-
 
 time_start=$(date +%s.%N)
 
@@ -43,7 +44,7 @@ rm $PACKAGEDIR/zImage
 rm arch/arm/boot/zImage
 
 echo "Make the kernel"
-make VARIANT_DEFCONFIG=jf_att_defconfig SELINUX_DEFCONFIG=jfselinux_defconfig SELINUX_LOG_DEFCONFIG=jfselinux_log_defconfig KT_jf_defconfig
+make VARIANT_DEFCONFIG=jf_tmo_defconfig SELINUX_DEFCONFIG=jfselinux_defconfig SELINUX_LOG_DEFCONFIG=jfselinux_log_defconfig chronic_jf_defconfig
 
 HOST_CHECK=`uname -n`
 if [ $HOST_CHECK = 'ktoonsez-VirtualBox' ] || [ $HOST_CHECK = 'task650-Underwear' ]; then
@@ -68,16 +69,12 @@ if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 	./mkbootfs $INITRAMFS_DEST | gzip > $PACKAGEDIR/ramdisk.gz
 	./mkbootimg --cmdline 'console = null androidboot.hardware=qcom user_debug=31 zcache' --kernel $PACKAGEDIR/zImage --ramdisk $PACKAGEDIR/ramdisk.gz --base 0x80200000 --pagesize 2048 --ramdisk_offset 0x02000000 --output $PACKAGEDIR/boot.img 
 	export curdate=`date "+%m-%d-%Y"`
-	echo "Executing loki"
-	./loki_patch-linux-x86_64 boot abootatt.img $PACKAGEDIR/boot.img $PACKAGEDIR/boot.lok
-	rm $PACKAGEDIR/boot.img
-	#cp loki_flash $PACKAGEDIR/loki_flash
 	cd $PACKAGEDIR
-	cp -R ../META-INF-SEC ./META-INF
+	cp -R ../META-INF .
 	rm ramdisk.gz
 	rm zImage
-	rm ../KT-SGS4-TW-JB-ATT*.zip
-	zip -r ../KT-SGS4-TW-JB-ATT-$curdate.zip .
+	rm ../KT-SGS4-TW-JB-TMO*.zip
+	zip -r ../KT-SGS4-TW-JB-TMO-$curdate.zip .
 	cd $KERNELDIR
 else
 	echo "KERNEL DID NOT BUILD! no zImage exist"
