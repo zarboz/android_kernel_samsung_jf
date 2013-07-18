@@ -7,7 +7,7 @@ echo "Make Clean"
 make clean
 echo "Make Mrproper"
 make mrproper
-#./build-spr-tw.sh
+./build-spr-tw.sh
 echo "Make Clean"
 make clean
 echo "Make Mrproper"

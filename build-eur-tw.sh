@@ -73,8 +73,8 @@ if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 	cp -R ../META-INF .
 	rm ramdisk.gz
 	rm zImage
-	rm ../KT-SGS4-TW-JB-eur*.zip
-	zip -r ../KT-SGS4-TW-JB-eur-$curdate.zip .
+	rm ../ChronicKernel-TW-jfeur*.zip
+	zip -r ../ChronicKernel-TW-jfeur-$curdate.zip .
 	cd $KERNELDIR
 else
 	echo "KERNEL DID NOT BUILD! no zImage exist"
