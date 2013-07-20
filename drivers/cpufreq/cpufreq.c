@@ -36,8 +36,8 @@
 #define CPUS_AVAILABLE	num_possible_cpus()
 int cpufreq_set_limit_defered(unsigned int flags, unsigned int value);
 
-int GLOBALKT_MIN_FREQ_LIMIT = 378000;
-int GLOBALKT_MAX_FREQ_LIMIT = 1890000;
+int GLOBALKT_MIN_FREQ_LIMIT = 135000;
+int GLOBALKT_MAX_FREQ_LIMIT = 1998000;
 
 static unsigned int vfreq_lock = 0;
 static bool vfreq_lock_tempOFF = false;
@@ -50,11 +50,11 @@ extern unsigned int get_enable_oc(void);
 
 static bool Lonoff = false;
 static unsigned int Lscreen_off_scaling_enable = 0;
-static unsigned int Lscreen_off_scaling_mhz = 1890000;
-static unsigned int Lscreen_off_scaling_mhz_orig = 1890000;
+static unsigned int Lscreen_off_scaling_mhz = 1998000;
+static unsigned int Lscreen_off_scaling_mhz_orig = 1998000;
 static unsigned long Lscreen_off_GPU_mhz = 0;
 static unsigned int Lbluetooth_scaling_mhz = 0;
-static unsigned int Lbluetooth_scaling_mhz_orig = 378000;
+static unsigned int Lbluetooth_scaling_mhz_orig = 135000;
 static bool bluetooth_scaling_mhz_active = false;
 static bool call_in_progress=false;
 static unsigned int Ldisable_som_call_in_progress = 0;
