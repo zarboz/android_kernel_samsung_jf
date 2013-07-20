@@ -165,17 +165,74 @@ void detect_sweep2wake(int x, int y, struct mxt_data *data)
 }
 
 /*
+ * SYSFS stuff below here
+ */
+
+static ssize_t sweep2wake_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	size_t count = 0;
+
+	count += sprintf(buf, "%d\n", s2w_switch);
+
+	return count;
+}
+
+static ssize_t sweep2wake_dump(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t count)
+{
+	if (buf[0] >= '0' && buf[0] <= '2' && buf[1] == '\n')
+                if (s2w_switch != buf[0] - '0')
+		        s2w_switch = buf[0] - '0';
+
+	return count;
+}
+
+static DEVICE_ATTR(sweep2wake, (S_IWUSR|S_IRUGO),
+	sweep2wake_show, sweep2wake_dump);
+
+static struct kobject *android_touch_kobj;
+
+static int s2w_sysfs_init(void)
+{
+	int ret ;
+
+	android_touch_kobj = kobject_create_and_add("android_touch", NULL) ;
+	if (android_touch_kobj == NULL) {
+		pr_debug("[mxt_touch]%s: subsystem_register failed\n", __func__);
+		ret = -ENOMEM;
+		return ret;
+	}
+
+	ret = sysfs_create_file(android_touch_kobj, &dev_attr_sweep2wake.attr);
+	if (ret) {
+		printk(KERN_ERR "%s: sysfs_create_file failed\n", __func__);
+		return ret;
+	}
+
+	return 0 ;
+}
+
+static void s2w_sysfs_deinit(void)
+{
+	sysfs_remove_file(android_touch_kobj, &dev_attr_sweep2wake.attr);
+	kobject_del(android_touch_kobj);
+}
+
+/*
  * INIT / EXIT stuff below here
  */
 
 static int __init sweep2wake_init(void)
 {
+	s2w_sysfs_init();
 	pr_info("[sweep2wake]: %s done\n", __func__);
 	return 0;
 }
 
 static void __exit sweep2wake_exit(void)
 {
+	s2w_sysfs_deinit();
 	return;
 }
 

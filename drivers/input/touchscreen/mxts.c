@@ -33,15 +33,17 @@
 #include <linux/input/sweep2wake.h>
 
 bool is_single_touch(struct mxt_data *data) {
-   unsigned int i = 0, numfingers = 0;
-   for (i = 0; i < MXT_MAX_FINGER; i++) {
-       if (data->fingers[i].state == MXT_STATE_PRESS)
-           numfingers++;
-   }
-   if (numfingers == 1)
-       return true;
-   else
-       return false;
+	unsigned int i = 0, numfingers = 0;
+
+	for (i = 0; i < MXT_MAX_FINGER; i++) {
+		if (data->fingers[i].state == MXT_STATE_PRESS)
+			numfingers++;
+	}
+
+	if (numfingers == 1)
+		return true;
+	else
+		return false;
 }
 #endif
 
@@ -621,9 +623,7 @@ static void mxt_report_input_data(struct mxt_data *data)
 #endif
 			input_report_key(data->input_dev,
 				BTN_TOOL_FINGER, 1);
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE			
-    detect_sweep2wake(data->fingers[i].x, data->fingers[i].y, 0);
-#endif    
+
 			if (data->fingers[i].type
 				 == MXT_T100_TYPE_HOVERING_FINGER)
 				/* hover is reported */
@@ -662,16 +662,12 @@ static void mxt_report_input_data(struct mxt_data *data)
 			data->fingers[i].state = MXT_STATE_MOVE;
 			count++;
 		}
-	}
-	
+
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-                        if (s2w_switch > 0) {
-                                exec_count = true;
-                                barrier[0] = false;
-                                barrier[1] = false;
-                                scr_on_touch = false;
-                        }
+		detect_sweep2wake(data->fingers[i].x, data->fingers[i].y, data);
 #endif
+	}
+
 	if (count == 0) {
 		input_report_key(data->input_dev, BTN_TOUCH, 0);
 		input_report_key(data->input_dev, BTN_TOOL_FINGER, 0);
@@ -690,7 +686,14 @@ static void mxt_report_input_data(struct mxt_data *data)
 #if TSP_USE_SHAPETOUCH
 		data->sumsize = 0;
 #endif
-
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	if (s2w_switch > 0) {
+		exec_count = true;
+		barrier[0] = false;
+		barrier[1] = false;
+		scr_on_touch = false;
+	}
+#endif
 	}
 #endif
 	if (count)
@@ -1617,18 +1620,30 @@ static int mxt_start(struct mxt_data *data)
 {
 	int error = 0;
 
-	if (data->mxt_enabled) {
-		dev_err(&data->client->dev,
-			"%s. but touch already on\n", __func__);
-		return error;
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	scr_suspended = false;
+
+	if (s2w_switch == 0)
+#endif
+	{
+		if (data->mxt_enabled) {
+			dev_err(&data->client->dev,
+				"%s. but touch already on\n", __func__);
+			return error;
+		}
+
+		error = mxt_power_on(data);
+		if (error)
+			dev_err(&data->client->dev, "Fail to start touch\n");
+		else {
+			enable_irq(data->client->irq);
+		}
 	}
-
-	error = mxt_power_on(data);
-	if (error)
-		dev_err(&data->client->dev, "Fail to start touch\n");
-	else
-		enable_irq(data->client->irq);
-
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	else {
+		disable_irq_wake(data->client->irq);
+	}
+#endif
 	return error;
 }
 
@@ -1637,22 +1652,34 @@ static int mxt_stop(struct mxt_data *data)
 {
 	int error = 0;
 
-	if (!data->mxt_enabled) {
-		dev_err(&data->client->dev,
-			"%s. but touch already off\n", __func__);
-		return error;
-	}
-	disable_irq(data->client->irq);
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	scr_suspended = true;
 
-	error = mxt_power_off(data);
-	if (error) {
-		dev_err(&data->client->dev, "Fail to stop touch\n");
-		goto err_power_off;
-	}
-	mxt_release_all_finger(data);
+	if (s2w_switch == 0)
+#endif
+	{
+		if (!data->mxt_enabled) {
+			dev_err(&data->client->dev,
+				"%s. but touch already off\n", __func__);
+			return error;
+		}
+		disable_irq(data->client->irq);
+
+		error = mxt_power_off(data);
+		if (error) {
+			dev_err(&data->client->dev, "Fail to stop touch\n");
+			goto err_power_off;
+		}
+		mxt_release_all_finger(data);
 #ifdef TSP_BOOSTER
-	mxt_set_dvfs_lock(data, 2);
-	pr_info("[TSP] dvfs_lock free.\n");
+		mxt_set_dvfs_lock(data, 2);
+		pr_info("[TSP] dvfs_lock free.\n");
+#endif
+	}
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	else {
+		enable_irq_wake(data->client->irq);
+	}
 #endif
 	return 0;
 
@@ -1961,7 +1988,7 @@ static void mxt_early_suspend(struct early_suspend *h)
 {
 	struct mxt_data *data = container_of(h, struct mxt_data,
 								early_suspend);
-#if TSP_INFORM_CHARGER
+#if defined(TSP_INFORM_CHARGER) && !defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE)
 	cancel_delayed_work_sync(&data->noti_dwork);
 #endif
 
