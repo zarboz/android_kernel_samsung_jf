@@ -74,8 +74,8 @@ if [ -e $KERNELDIR/arch/arm/boot/zImage ]; then
 	cp -R ../META-INF-LOKI ./META-INF
 	rm ramdisk.gz
 	rm zImage
-        rm -r ../ChronicKernel-JFatt*.zip
-	zip -r ../ChronicKernel-JFatt-$curdate.zip .
+        rm -r ../ChronicKernel-AOSP-JFatt*.zip
+	zip -r ../ChronicKernel-AOSP-JFatt-$curdate.zip .
 	cd $KERNELDIR
 else
 	echo "KERNEL DID NOT BUILD! no zImage exist"
