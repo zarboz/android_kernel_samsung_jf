@@ -31,6 +31,18 @@
 #endif
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
 #include <linux/input/sweep2wake.h>
+
+bool is_single_touch(struct mxt_data *data) {
+   unsigned int i = 0, numfingers = 0;
+   for (i = 0; i < MXT_MAX_FINGER; i++) {
+       if (data->fingers[i].state == MXT_STATE_PRESS)
+           numfingers++;
+   }
+   if (numfingers == 1)
+       return true;
+   else
+       return false;
+}
 #endif
 
 
@@ -577,19 +589,7 @@ static void mxt_report_input_data(struct mxt_data *data)
 	int i;
 	int count = 0;
 	int report_count = 0;
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-bool is_single_touch(struct mxt_data *data) {
-   unsigned int numfingers = 0;
-   for (i = 0; i < MXT_MAX_FINGER; i++) {
-       if (data->fingers[i].state == MXT_STATE_PRESS)
-           numfingers++;
-   }
-   if (numfingers > 1)
-       return false;
-   else
-       return true;
-}
-#endif
+
 	for (i = 0; i < MXT_MAX_FINGER; i++) {
 		if (data->fingers[i].state == MXT_STATE_INACTIVE)
 			continue;
