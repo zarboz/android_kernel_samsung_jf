@@ -29,6 +29,10 @@
 #ifdef CONFIG_HAS_EARLYSUSPEND
 #include <linux/earlysuspend.h>
 #endif
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+#include <linux/input/sweep2wake.h>
+#endif
+
 
 /*#define dev_dbg(dev, fmt, arg...) dev_info(dev, fmt, ##arg)*/
 
@@ -38,6 +42,7 @@
  * on upper layer not kernel driver in the feature.....
  */
 int touch_is_pressed;
+
 
 static int mxt_read_mem(struct mxt_data *data, u16 reg, u8 len, void *buf)
 {
@@ -572,7 +577,19 @@ static void mxt_report_input_data(struct mxt_data *data)
 	int i;
 	int count = 0;
 	int report_count = 0;
-
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+bool is_single_touch(struct mxt_data *data) {
+   unsigned int numfingers = 0;
+   for (i = 0; i < MXT_MAX_FINGER; i++) {
+       if (data->fingers[i].state == MXT_STATE_PRESS)
+           numfingers++;
+   }
+   if (numfingers > 1)
+       return false;
+   else
+       return true;
+}
+#endif
 	for (i = 0; i < MXT_MAX_FINGER; i++) {
 		if (data->fingers[i].state == MXT_STATE_INACTIVE)
 			continue;
@@ -604,7 +621,9 @@ static void mxt_report_input_data(struct mxt_data *data)
 #endif
 			input_report_key(data->input_dev,
 				BTN_TOOL_FINGER, 1);
-
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE			
+    detect_sweep2wake(data->fingers[i].x, data->fingers[i].y, 0);
+#endif    
 			if (data->fingers[i].type
 				 == MXT_T100_TYPE_HOVERING_FINGER)
 				/* hover is reported */
@@ -644,7 +663,15 @@ static void mxt_report_input_data(struct mxt_data *data)
 			count++;
 		}
 	}
-
+	
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+                        if (s2w_switch > 0) {
+                                exec_count = true;
+                                barrier[0] = false;
+                                barrier[1] = false;
+                                scr_on_touch = false;
+                        }
+#endif
 	if (count == 0) {
 		input_report_key(data->input_dev, BTN_TOUCH, 0);
 		input_report_key(data->input_dev, BTN_TOOL_FINGER, 0);
