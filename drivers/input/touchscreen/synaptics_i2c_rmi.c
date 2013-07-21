@@ -596,11 +596,10 @@ bool is_single_touch(struct synaptics_rmi4_data *rmi4_data,
 		finger_status = finger_data->object_type_and_status;
 		if (finger_status == 1)
 			finger_cnt++;
+		if (finger_cnt > 1)
+			return false;
 	}
-	if (finger_cnt == 1)
-		return true;
-	else
-		return false;
+	return true;
 }
 #endif
 
