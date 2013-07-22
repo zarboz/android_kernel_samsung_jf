@@ -101,7 +101,7 @@ static int update_cpu_max_freq(struct cpufreq_policy *cpu_policy,
 	return ret;
 }
 
-static void check_temp(struct work_struct *work)
+static void __cpuinit check_temp(struct work_struct *work)
 {
 	struct cpufreq_policy *cpu_policy = NULL;
 	struct tsens_device tsens_dev;
@@ -168,7 +168,7 @@ static void check_temp(struct work_struct *work)
 			if (pre_throttled_max != 0)
 				max_freq = pre_throttled_max;
 			else {
-				max_freq = CONFIG_MSM_CPU_FREQ_MAX;
+				max_freq = 1890000;
 				pr_warn("msm_thermal: ERROR! pre_throttled_max=0, falling back to %u\n", max_freq);
 			}
 			update_policy = true;
