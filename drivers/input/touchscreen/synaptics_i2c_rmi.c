@@ -1560,17 +1560,19 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 				BTN_TOUCH, 0);
 #ifndef TYPE_B_PROTOCOL
 		input_mt_sync(rmi4_data->input_dev);
-#endif
-	#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+
+
+	  #endif
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
   if (s2w_switch > 0) {
-//     pr_err("[sweep2wake]: reset exec count");
+    pr_err("[sweep2wake]: reset exec count");
     exec_count = true;
     barrier[0] = false;
     barrier[1] = false;
     scr_on_touch = false;
   }
 #endif
-}
+	}
 
 	input_sync(rmi4_data->input_dev);
 
@@ -1582,6 +1584,7 @@ static int synaptics_rmi4_f12_abs_report(struct synaptics_rmi4_data *rmi4_data,
 #endif
 		
 	return touch_count;
+
 }
 
 static void synaptics_rmi4_f1a_report(struct synaptics_rmi4_data *rmi4_data,
@@ -4177,6 +4180,7 @@ static void synaptics_rmi4_early_suspend(struct early_suspend *h)
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
    else {
      enable_irq(rmi4_data->i2c_client->irq);
+
    }
 #endif
 }
@@ -4196,15 +4200,15 @@ static void synaptics_rmi4_late_resume(struct early_suspend *h)
 			container_of(h, struct synaptics_rmi4_data,
 			early_suspend);
 	int retval;
+
+	if (rmi4_data->staying_awake)
+		return;
 #ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
 	scr_suspended = false;
 	
 	if (s2w_switch == 0)
 #endif
   {
-	if (rmi4_data->staying_awake)
-		return;
-
 	if (rmi4_data->touch_stopped) {
 		dev_info(&rmi4_data->i2c_client->dev, "%s\n", __func__);
 
@@ -4269,7 +4273,11 @@ static int synaptics_rmi4_suspend(struct device *dev)
 
 	if (rmi4_data->staying_awake)
 		return 0;
-
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	scr_suspended = true;
+	if (s2w_switch == 0) 
+#endif
+  {
 	mutex_lock(&rmi4_data->input_dev->mutex);
 
 	if (rmi4_data->input_dev->users) {
@@ -4288,8 +4296,13 @@ static int synaptics_rmi4_suspend(struct device *dev)
 
 	return 0;
     
+    }
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+   else {
+     enable_irq(rmi4_data->i2c_client->irq);
+   }
+#endif
 }
-
  /**
  * synaptics_rmi4_resume()
  *
@@ -4308,7 +4321,9 @@ static int synaptics_rmi4_resume(struct device *dev)
 	dev_info(&rmi4_data->i2c_client->dev, "%s\n", __func__);
 
 	mutex_lock(&rmi4_data->input_dev->mutex);
-
+#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
+	scr_suspended = false;
+#endif
 	if (rmi4_data->input_dev->users) {
 		if (rmi4_data->touch_stopped) {
 			rmi4_data->board->power(true);
