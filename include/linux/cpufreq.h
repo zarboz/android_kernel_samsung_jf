@@ -23,9 +23,9 @@
 
 #define CPUFREQ_NAME_LEN 17
 
-#define FREQ_TABLE_SIZE		42
-#define FREQ_TABLE_SIZE_OFFSET	4
-#define FREQ_STEPS		22
+#define FREQ_TABLE_SIZE		45
+#define FREQ_TABLE_SIZE_OFFSET	8
+#define FREQ_STEPS		31
 
 #define MAX_VDD_SC		1350000 /* uV */
 #define MIN_VDD_SC		700000 /* uV */
