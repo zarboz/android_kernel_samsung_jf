@@ -32,7 +32,6 @@
 #include <linux/platform_device.h>
 #include <linux/rfkill.h>
 #include <linux/wakelock.h>
-#include <trace/events/mpdcvs_trace.h>?
 
 #include <asm/mach-types.h>
 
