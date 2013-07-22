@@ -32,6 +32,7 @@
 #include <linux/platform_device.h>
 #include <linux/rfkill.h>
 #include <linux/wakelock.h>
+#include <trace/events/mpdcvs_trace.h>?
 
 #include <asm/mach-types.h>
 
@@ -62,7 +63,6 @@
 
 
 static struct rfkill *bt_rfkill;
-extern void set_bluetooth_state(unsigned int val);
 
 int get_gpio_hwrev(int gpio)
 {
@@ -186,7 +186,7 @@ static int bcm4335_bt_rfkill_set_power(void *data, bool blocked)
 	}
 #endif
 		pr_err("[BT] Bluetooth Power Off.\n");
-		set_bluetooth_state(0);
+
 		ret = ice_gpiox_set(FPGA_GPIO_BT_EN, 0);
 		if (ret)
 			pr_err("[BT] failed to set BT_EN.\n");
