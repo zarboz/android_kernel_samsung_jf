@@ -1,28 +1,9 @@
-/*
- * misc.c
- * 
- * This is a collection of several routines from gzip-1.0.3 
- * adapted for Linux.
- *
- * malloc by Hannu Savolainen 1993 and Matthias Urlichs 1994
- *
- * Modified for ARM Linux by Russell King
- *
- * Nicolas Pitre <nico@visuaide.com>  1999/04/14 :
- *  For this code to run directly from Flash, all constant variables must
- *  be marked with 'const' and all other variables initialized at run-time 
- *  only.  This way all non constant variables will end up in the bss segment,
- *  which should point to addresses in RAM and cleared to 0 on start.
- *  This allows for a much quicker boot time.
- */
 
 unsigned int __machine_arch_type;
 
-#include <linux/compiler.h>	/* for inline */
+#include <linux/compiler.h>	
 #include <linux/types.h>
 #include <linux/linkage.h>
-#include <asm/setup.h>
-#include <asm/string.h>
 
 static void putstr(const char *ptr);
 extern void error(char *x);
@@ -98,9 +79,6 @@ static void putstr(const char *ptr)
 	flush();
 }
 
-/*
- * gzip declarations
- */
 extern char input_data[];
 extern char input_data_end[];
 
@@ -121,7 +99,7 @@ void error(char *x)
 	putstr(x);
 	putstr("\n\n -- System halted");
 
-	while(1);	/* Halt */
+	while(1);	
 }
 
 asmlinkage void __div0(void)
@@ -153,26 +131,4 @@ decompress_kernel(unsigned long output_start, unsigned long free_mem_ptr_p,
 		error("decompressor returned an error");
 	else
 		putstr(" done, booting the kernel.\n");
-}
-
-const struct tag *copy_atags(struct tag *dest, const struct tag *src,
-                             size_t max)
-{
-	struct tag *tag;
-	size_t      size;
-
-	/* Find the last tag (ATAG_NONE). */
-	for_each_tag(tag, (struct tag *)src)
-		continue;
-
-	/* Include the last tag in copy. */
-	size = (char *)tag - (char *)src + sizeof(struct tag_header);
-
-	/* If there's not enough room, just use original and hope it works. */
-	if (size > max)
-		return src;
-
-	memcpy(dest, src, size);
-
-	return dest;
 }
